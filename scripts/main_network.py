@@ -10,8 +10,62 @@ class network:
     def network_addition(self, word, context):
         return
 
-    def generate_response(self, context_table):
-        return
+    def generate_response(self, words_list):
+        json_mem = json_ex('mem\set\mem.json').load_file()
+        response = None
+        top_dif = 1
+        for v in json_mem["SENTENCES"]:
+            k_words = []
+            k_word = ""
+            for i in v:
+                if i != " ":
+                    if v.index(i) == len(v)-1 or v[v.index(i)+1] in self.character_avoidance:
+                        k_word += i
+
+                        k_words.append(k_word)
+                        k_word = ""
+                    else:
+                        k_word += i 
+                else:
+                    k_words.append(k_word.lower())
+                    k_word = ""
+
+            if k_word != "":
+                k_words.append(k_word)
+                k_word = ""
+            
+            difference = 1
+
+            for i in words_list:
+                for z in k_words:
+                    if i.lower() == z.lower():
+                        difference -= 0.1
+                    else:
+                        if difference+0.05 >= 1:
+                            difference = 1
+                        else:
+                            difference += 0.05
+
+            if difference < top_dif: 
+                top_dif = difference
+                rstring = ""
+                for i in words_list:
+                    if words_list.index(i) == len(words_list):
+                        rstring += i
+                    else:
+                        rstring += i+" "
+                response=rstring
+            
+        return response
+
+
+    def attain_dict_list(self, list_name):
+        json_dict = json_ex('mem\set\dict.json').load_file()
+        loaded_item = None
+        for name,v in json_dict.items():
+            if name.lower() == list_name.lower():
+                loaded_item = v[0]
+        return loaded_item
 
     def attain_analyze_files(self):
         files = {}
@@ -27,22 +81,34 @@ class network:
     def analyze(self, k_words):
         anlz_files = self.attain_analyze_files()
         response = []
+
+        anlz_config = {
+            'InitWords': False
+        }
+
         for i in k_words:
             if k_words.index(i)+1 != len(k_words):
                 context = i[1]
                 if 'STARTUP' in context:
                     if 'GREETING' in context:
-                        print(context) # WORKING HERE
-
+                        if not anlz_config["InitWords"]:
+                            response.append(anlz_files['STARTUP']().r(None, self.attain_dict_list(list_name="GREETING")))
+                            anlz_config["InitWords"]=True
+                elif 'ENDUP' in context:
+                    if 'FAREWELL' in context:
+                        if not anlz_config["InitWords"]:
+                            response.append(anlz_files['ENDUP']().r(None, self.attain_dict_list(list_name="FAREWELL")))
+                            anlz_config["InitWords"]=Trues
+                        
         return response
 
     def format_language(self, k_words):
         returned_list = []
         cancelled_list = []
-        json_mem = json_ex('mem\set\dict.json').load_file()
+        json_dict = json_ex('mem\set\dict.json').load_file()
 
         for y in k_words:
-            for _,v in json_mem.items():
+            for _,v in json_dict.items():
                 for i in v:
                     if v.index(i) == 0:
                         for z in i:
@@ -81,4 +147,4 @@ class network:
             current_k_word = ""
 
         established_words = self.format_language(k_words)
-        self.analyze(established_words)
+        print(self.generate_response(self.analyze(established_words)))
