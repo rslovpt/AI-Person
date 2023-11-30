@@ -1,11 +1,13 @@
 from scripts.json import json_ex
+from scripts.memory_access import memory_access
 from difflib import SequenceMatcher
 import os, importlib
 class network:
     def __init__(self):
         self.attitude = []
 
-        self.character_avoidance = ['.', '/', '[', ']', '"', "'", '!', '?', ',']
+        self.character_avoidance = ['.', '/', '[', ']', '"', "'", '!', '?', ','],
+        self.time_take = 0
 
     def network_addition(self, word, context):
         return
@@ -94,12 +96,15 @@ class network:
                         if not anlz_config["InitWords"]:
                             response.append(anlz_files['STARTUP']().r(None, self.attain_dict_list(list_name="GREETING")))
                             anlz_config["InitWords"]=True
+                    elif 'FAREWELL' in context:
+                        if not anlz_config["InitWords"]:
+                            response.append(anlz_files['ENDUP']().r(None, self.attain_dict_list(list_name="FAREWELL")))
+                            anlz_config["InitWords"]=True
                 elif 'ENDUP' in context:
                     if 'FAREWELL' in context:
                         if not anlz_config["InitWords"]:
                             response.append(anlz_files['ENDUP']().r(None, self.attain_dict_list(list_name="FAREWELL")))
-                            anlz_config["InitWords"]=Trues
-                        
+                            anlz_config["InitWords"]=True                        
         return response
 
     def format_language(self, k_words):
@@ -147,4 +152,14 @@ class network:
             current_k_word = ""
 
         established_words = self.format_language(k_words)
-        print(self.generate_response(self.analyze(established_words)))
+        generated_response = self.generate_response(self.analyze(established_words))
+        try:
+            memory_access(True).memory_addition('mem.json', {
+                'user_response': text.strip(),
+                'generated_response': generated_response.strip(),
+                'process_time': self.time_take
+            })
+        except AttributeError:
+            pass # ERROR LOG GOES HERE
+
+        print(generated_response) 

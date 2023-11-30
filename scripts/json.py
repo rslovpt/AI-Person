@@ -13,3 +13,10 @@ class json_ex:
         data = json.load(f)
         f.close()
         return data
+
+    def dump_var(self):
+        return json.dumps(self.var)
+
+    def jsonfile_replacement(self, new_value):
+        open(self.var,'r+').close()
+        json.dump(new_value, open(self.var, 'w+'))
